@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PARA Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #21262d;
+    --border2: #30363d; --text: #e6edf3; --muted: #8b949e;
+    --dim: #484f58; --green: #238636; --blue: #1f6feb;
+    --red: #ef4444; --amber: #f59e0b; --purple: #8b5cf6;
+    --teal: #10b981; --orange: #f97316;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; }
+  button { cursor: pointer; font-family: 'Outfit', sans-serif; }
+  input, select, textarea { font-family: 'DM Mono', monospace; }
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+#app { display: flex; height: 100vh; overflow: hidden; }
+
+/* ── Sidebar ── */
+#sidebar {
+width: 220px; flex-shrink: 0; border-right: 1px solid var(–border);
+display: flex; flex-direction: column; padding: 18px 10px; gap: 2px; overflow-y: auto;
+}
+.sidebar-logo { font-weight: 700; font-size: 20px; padding: 4px 12px 16px; letter-spacing: -0.03em; color: var(–text); }
+.sidebar-section { color: var(–dim); font-family: ‘DM Mono’, monospace; font-size: 10px;
+letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 12px 4px; }
+.nav-btn {
+display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 12px;
+border-radius: 7px; border: none; background: transparent; color: var(–muted);
+font-size: 13.5px; font-weight: 400; text-align: left; transition: all 0.12s;
+}
+.nav-btn:hover { background: var(–surface); color: var(–text); }
+.nav-btn.active { background: var(–surface); color: var(–text); font-weight: 600; }
+.sidebar-stats { border-top: 1px solid var(–border); padding-top: 12px; margin-top: auto; }
+.stat-row { display: flex; justify-content: space-between; padding: 3px 12px;
+font-family: ‘DM Mono’, monospace; font-size: 12px; color: var(–dim); }
+.stat-val { color: var(–muted); }
+.stat-val.danger { color: var(–red); }
+
+/* ── Main ── */
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#header { padding: 20px 28px 0; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+#header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; flex: 1; }
+#header .sub { color: var(–dim); font-family: ‘DM Mono’, monospace; font-size: 12px; margin-top: 2px; }
+#search { background: var(–surface); border: 1px solid var(–border2); border-radius: 8px;
+color: var(–text); padding: 8px 14px; font-size: 13px; outline: none; width: 200px; }
+#search::placeholder { color: var(–dim); }
+.btn-primary { background: var(–green); border: none; color: #fff; border-radius: 7px;
+padding: 9px 18px; font-weight: 600; font-size: 13.5px; white-space: nowrap; }
+.btn-primary:hover { filter: brightness(1.15); }
+.btn-blue { background: var(–blue); }
+
+#filters { padding: 14px 28px 0; display: flex; gap: 7px; flex-wrap: wrap; flex-shrink: 0; }
+.chip { padding: 4px 12px; border-radius: 20px; border: 1px solid var(–border2);
+background: transparent; color: var(–muted); font-size: 12px; font-family: ‘DM Mono’, monospace; transition: all 0.12s; }
+.chip:hover { border-color: var(–blue); color: #58a6ff; }
+.chip.active { border-color: var(–blue); background: #1f6feb22; color: #58a6ff; }
+.chip-sep { width: 1px; background: var(–border); margin: 0 4px; }
+
+#content { flex: 1; padding: 18px 28px; overflow-y: auto; }
+
+/* ── Task Row ── */
+.task-row {
+display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+border-radius: 8px; background: var(–bg); border: 1px solid var(–border);
+margin-bottom: 6px; transition: border-color 0.12s;
+}
+.task-row:hover { border-color: var(–border2); }
+.task-row.done { opacity: 0.5; }
+.check-btn { width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(–border2);
+background: transparent; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+transition: all 0.12s; }
+.check-btn.checked { background: var(–teal); border-color: var(–teal); color: #fff; font-size: 10px; }
+.task-title { flex: 1; font-size: 14px; font-weight: 500; white-space: nowrap;
+overflow: hidden; text-overflow: ellipsis; }
+.task-row.done .task-title { text-decoration: line-through; color: var(–dim); }
+.task-meta { font-family: ‘DM Mono’, monospace; font-size: 11px; color: var(–dim); margin-top: 2px; }
+.badge { font-family: ‘DM Mono’, monospace; font-size: 11px; flex-shrink: 0; white-space: nowrap; }
+.icon-btn { background: none; border: none; color: var(–dim); font-size: 13px; padding: 0 3px; }
+.icon-btn:hover { color: var(–muted); }
+
+/* ── Section header ── */
+.section-hdr { color: var(–muted); font-family: ‘DM Mono’, monospace; font-size: 11px;
+letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+.section-hdr.danger { color: var(–red); }
+.section-block { margin-bottom: 24px; }
+
+/* ── Quick capture ── */
+#quick-cap { background: var(–surface); border: 1px dashed var(–border2); border-radius: 10px;
+padding: 12px 16px; display: flex; gap: 10px; align-items: center; margin-top: 20px; }
+#quick-input { flex: 1; background: transparent; border: none; outline: none;
+color: var(–text); font-family: ‘Outfit’, sans-serif; font-size: 14px; }
+#quick-input::placeholder { color: var(–dim); }
+#quick-add { background: none; border: none; color: var(–green); font-weight: 600; font-size: 13px; }
+
+/* ── Notes ── */
+#notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.note-card { background: var(–surface); border: 1px solid var(–border); border-radius: 10px;
+padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.note-title { font-weight: 600; font-size: 15px; }
+.note-meta { font-family: ‘DM Mono’, monospace; font-size: 11px; color: var(–dim); }
+.note-body { font-family: ‘DM Mono’, monospace; font-size: 13px; color: var(–muted);
+white-space: pre-wrap; max-height: 100px; overflow: hidden; line-height: 1.6; }
+.note-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+/* ── Empty ── */
+.empty { color: var(–dim); font-size: 14px; padding: 24px 0; }
+
+/* ── Modal ── */
+#modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100;
+display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+#modal-overlay.open { display: flex; }
+#modal-box { background: var(–surface); border: 1px solid var(–border2); border-radius: 12px;
+padding: 26px; width: 90vw; max-width: 520px; max-height: 88vh; overflow-y: auto;
+box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
+.modal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 17px; font-weight: 600; }
+.modal-close { background: none; border: none; color: var(–dim); font-size: 22px; line-height: 1; }
+.form-group { margin-bottom: 14px; }
+.form-label { color: var(–muted); font-size: 11px; font-family: ‘DM Mono’, monospace;
+letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 5px; display: block; }
+.form-input { width: 100%; background: var(–bg); border: 1px solid var(–border2);
+border-radius: 6px; color: var(–text); padding: 8px 12px; font-size: 13.5px;
+font-family: ‘DM Mono’, monospace; outline: none; }
+.form-input:focus { border-color: var(–blue); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+textarea.form-input { min-height: 80px; resize: vertical; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+.btn-cancel { background: none; border: 1px solid var(–border2); color: var(–muted);
+border-radius: 6px; padding: 8px 18px; font-size: 13.5px; }
+.btn-save { background: var(–green); border: none; color: #fff; border-radius: 6px;
+padding: 8px 18px; font-weight: 600; font-size: 13.5px; }
+.btn-save.blue { background: var(–blue); }
+
+/* animations */
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+.task-row, .note-card { animation: fadeIn 0.18s ease both; }
+</style>
+
+</head>
+<body>
+<div id="app">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sidebar-logo">◆ PARA</div>
+
+```
+<div class="sidebar-section">Views</div>
+<button class="nav-btn active" data-view="today">📅 Today</button>
+<button class="nav-btn" data-view="tasks">✅ All Tasks</button>
+<button class="nav-btn" data-view="notes">📝 Notes</button>
+
+<div class="sidebar-section">PARA</div>
+<button class="nav-btn" data-view="para" data-para="Projects">🚀 Projects</button>
+<button class="nav-btn" data-view="para" data-para="Areas">🗂 Areas</button>
+<button class="nav-btn" data-view="para" data-para="Resources">📚 Resources</button>
+<button class="nav-btn" data-view="para" data-para="Archive">🗄 Archive</button>
+
+<div class="sidebar-stats">
+  <div class="sidebar-section" style="padding-top:0">Stats</div>
+  <div class="stat-row"><span>Active</span><span class="stat-val" id="stat-active">0</span></div>
+  <div class="stat-row"><span>Overdue</span><span class="stat-val" id="stat-overdue">0</span></div>
+  <div class="stat-row"><span>Notes</span><span class="stat-val" id="stat-notes">0</span></div>
+</div>
+```
+
+  </div>
+
+  <!-- Main -->
+
+  <div id="main">
+    <div id="header">
+      <div>
+        <h1 id="view-title">Today</h1>
+        <div class="sub" id="view-date"></div>
+      </div>
+      <input id="search" type="text" placeholder="Search…" />
+      <button class="btn-primary" id="new-btn">+ New Task</button>
+    </div>
+
+```
+<div id="filters"></div>
+<div id="content"></div>
+```
+
+  </div>
+</div>
+
+<!-- Modal -->
+
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title" id="modal-title">New Task</span>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const STATUSES = ["Not Started","Waiting / Blocked","Someday / Maybe","Done"];
+const PRIORITIES = ["High","Medium","Low"];
+const PARA_SECTIONS = ["Projects","Areas","Resources","Archive"];
+const STATUS_COLOR = {"Not Started":"#6b7280","Waiting / Blocked":"#f59e0b","Someday / Maybe":"#8b5cf6","Done":"#10b981"};
+const PRI_COLOR = {"High":"#ef4444","Medium":"#f97316","Low":"#3b82f6"};
+
+const DEFAULT = {
+  tasks: [
+    {id:1,title:"Set up dashboard",project:"Projects",status:"Done",priority:"High",due:"",notes:"",area:"Work"},
+    {id:2,title:"Review Q2 roadmap",project:"Projects",status:"Not Started",priority:"High",due:"",notes:"",area:"Work"},
+    {id:3,title:"Organize reference folder",project:"Resources",status:"Someday / Maybe",priority:"Low",due:"",notes:"",area:"Personal"},
+  ],
+  notes: [
+    {id:1,title:"PARA Overview",content:"Projects → active goals\nAreas → ongoing responsibilities\nResources → reference material\nArchive → inactive items",para:"Resources",updated:new Date().toISOString()},
+  ],
+  areas: ["Work","Personal","Health","Finance","Learning"],
+};
+
+function load() {
+  try { const d = localStorage.getItem("para-v1"); return d ? JSON.parse(d) : JSON.parse(JSON.stringify(DEFAULT)); }
+  catch { return JSON.parse(JSON.stringify(DEFAULT)); }
+}
+function save() { try { localStorage.setItem("para-v1",JSON.stringify(db)); } catch{} }
+
+let db = load();
+let state = { view:"today", para:"Projects", filterStatus:"All", filterPriority:"All", search:"", editId:null, editType:null };
+
+function uid() { return Date.now() + Math.random(); }
+function todayISO() { return new Date().toISOString().split("T")[0]; }
+function fmtDate(iso) { if(!iso) return ""; return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  renderHeader();
+  renderFilters();
+  renderContent();
+  renderStats();
+  bindNav();
+}
+
+function renderHeader() {
+  const titles = {today:"Today",tasks:"All Tasks",notes:"Notes",para:state.para};
+  document.getElementById("view-title").textContent = titles[state.view];
+  document.getElementById("view-date").textContent = new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  document.getElementById("new-btn").textContent = state.view === "notes" ? "+ New Note" : "+ New Task";
+}
+
+function renderFilters() {
+  const f = document.getElementById("filters");
+  if (state.view === "notes") { f.innerHTML = ""; return; }
+  let html = "";
+  const chip = (val, active, group, label) =>
+    `<button class="chip ${active?"active":""}" data-fgroup="${group}" data-fval="${val}">${label}</button>`;
+  html += chip("All", state.filterStatus==="All","status","All Status");
+  STATUSES.forEach(s => html += chip(s, state.filterStatus===s,"status",s));
+  html += `<div class="chip-sep"></div>`;
+  html += chip("All", state.filterPriority==="All","priority","All Priority");
+  PRIORITIES.forEach(p => html += chip(p, state.filterPriority===p,"priority",p));
+  f.innerHTML = html;
+  f.querySelectorAll(".chip[data-fgroup]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.fgroup === "status") state.filterStatus = btn.dataset.fval;
+      else state.filterPriority = btn.dataset.fval;
+      render();
+    });
+  });
+}
+
+function filterTasks() {
+  const q = state.search.toLowerCase();
+  return db.tasks.filter(t => {
+    if (state.filterStatus !== "All" && t.status !== state.filterStatus) return false;
+    if (state.filterPriority !== "All" && t.priority !== state.filterPriority) return false;
+    if (state.view === "para" && t.project !== state.para) return false;
+    if (q && !t.title.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function taskRowHTML(t) {
+  const done = t.status === "Done";
+  const meta = [t.project, t.area, t.due ? fmtDate(t.due) : ""].filter(Boolean).join(" · ");
+  return `<div class="task-row ${done?"done":""}" data-id="${t.id}">
+    <button class="check-btn ${done?"checked":""}" data-toggle="${t.id}">${done?"✓":""}</button>
+    <div style="flex:1;min-width:0">
+      <div class="task-title">${esc(t.title)}</div>
+      <div class="task-meta">${esc(meta)}</div>
+    </div>
+    <span class="badge" style="color:${STATUS_COLOR[t.status]}">${t.status}</span>
+    <span class="badge" style="color:${PRI_COLOR[t.priority]};margin-left:6px">${t.priority}</span>
+    <button class="icon-btn" data-edit="${t.id}">✏️</button>
+    <button class="icon-btn" data-del="${t.id}">🗑</button>
+  </div>`;
+}
+
+function renderContent() {
+  const el = document.getElementById("content");
+  const q = state.search.toLowerCase();
+
+  if (state.view === "today") {
+    const today = todayISO();
+    const overdue = db.tasks.filter(t => t.status!=="Done" && t.due && t.due < today);
+    const focus = db.tasks.filter(t => t.status!=="Done" && t.status!=="Someday / Maybe" && (!t.due || t.due === today));
+    let html = "";
+    if (overdue.length) {
+      html += `<div class="section-block"><div class="section-hdr danger">⚠ Overdue (${overdue.length})</div>`;
+      html += overdue.map(taskRowHTML).join("") + "</div>";
+    }
+    html += `<div class="section-block"><div class="section-hdr">Focus (${focus.length} tasks)</div>`;
+    html += focus.length ? focus.map(taskRowHTML).join("") : `<div class="empty">Nothing due today — add a task below.</div>`;
+    html += `</div>
+    <div id="quick-cap">
+      <span style="color:var(--dim);font-size:16px">⚡</span>
+      <input id="quick-input" type="text" placeholder="Quick capture — type a task and hit Enter" />
+      <button id="quick-add" style="display:none">Add →</button>
+    </div>`;
+    el.innerHTML = html;
+    const qi = document.getElementById("quick-input");
+    const qa = document.getElementById("quick-add");
+    qi.addEventListener("input", () => qa.style.display = qi.value.trim() ? "block" : "none");
+    qi.addEventListener("keydown", e => e.key === "Enter" && quickAdd());
+    qa.addEventListener("click", quickAdd);
+    function quickAdd() {
+      const v = qi.value.trim(); if (!v) return;
+      db.tasks.unshift({id:uid(),title:v,project:"Projects",status:"Not Started",priority:"Medium",due:"",notes:"",area:db.areas[0]||"Work"});
+      save(); qi.value = ""; qa.style.display = "none"; render();
+    }
+  }
+
+  else if (state.view === "tasks" || state.view === "para") {
+    const tasks = filterTasks();
+    el.innerHTML = tasks.length ? tasks.map(taskRowHTML).join("") : `<div class="empty">No tasks match your filters.</div>`;
+  }
+
+  else if (state.view === "notes") {
+    const notes = db.notes.filter(n => !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+    if (!notes.length) { el.innerHTML = `<div class="empty">No notes yet — create one above.</div>`; return; }
+    el.innerHTML = `<div id="notes-grid">${notes.map(n => `
+      <div class="note-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="note-title">${esc(n.title)}</div>
+          <div class="note-actions">
+            <button class="icon-btn" data-edit-note="${n.id}">✏️</button>
+            <button class="icon-btn" data-del-note="${n.id}">🗑</button>
+          </div>
+        </div>
+        <div class="note-meta">${n.para} · ${fmtDate(n.updated)}</div>
+        <div class="note-body">${esc(n.content)}</div>
+      </div>`).join("")}</div>`;
+    el.querySelectorAll("[data-edit-note]").forEach(b => b.addEventListener("click", () => openNoteModal(b.dataset.editNote)));
+    el.querySelectorAll("[data-del-note]").forEach(b => b.addEventListener("click", () => { db.notes = db.notes.filter(n=>String(n.id)!==b.dataset.delNote); save(); render(); }));
+  }
+
+  // Task row events
+  el.querySelectorAll("[data-toggle]").forEach(b => b.addEventListener("click", () => {
+    const t = db.tasks.find(t=>String(t.id)===b.dataset.toggle);
+    if (t) { t.status = t.status==="Done" ? "Not Started" : "Done"; save(); render(); }
+  }));
+  el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openTaskModal(b.dataset.edit)));
+  el.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => { db.tasks = db.tasks.filter(t=>String(t.id)!==b.dataset.del); save(); render(); }));
+}
+
+function renderStats() {
+  const today = todayISO();
+  const active = db.tasks.filter(t=>t.status!=="Done"&&t.status!=="Someday / Maybe").length;
+  const overdue = db.tasks.filter(t=>t.status!=="Done"&&t.due&&t.due<today).length;
+  document.getElementById("stat-active").textContent = active;
+  const ov = document.getElementById("stat-overdue"); ov.textContent = overdue;
+  ov.className = "stat-val" + (overdue > 0 ? " danger" : "");
+  document.getElementById("stat-notes").textContent = db.notes.length;
+}
+
+function bindNav() {
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.view === state.view && (!btn.dataset.para || btn.dataset.para === state.para));
+    btn.addEventListener("click", () => {
+      state.view = btn.dataset.view;
+      if (btn.dataset.para) state.para = btn.dataset.para;
+      render();
+    });
+  });
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+function openTaskModal(id) {
+  const t = id ? db.tasks.find(t=>String(t.id)===String(id)) : null;
+  const v = t || {title:"",project:"Projects",status:"Not Started",priority:"Medium",due:"",notes:"",area:db.areas[0]||"Work"};
+  document.getElementById("modal-title").textContent = t ? "Edit Task" : "New Task";
+  document.getElementById("modal-body").innerHTML = `
+    <div class="form-group"><label class="form-label">Task title</label>
+      <input class="form-input" id="f-title" value="${esc(v.title)}" placeholder="What needs to be done?" /></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">PARA section</label>
+        <select class="form-input" id="f-project">${PARA_SECTIONS.map(p=>`<option ${v.project===p?"selected":""}>${p}</option>`).join("")}</select></div>
+      <div class="form-group"><label class="form-label">Area</label>
+        <select class="form-input" id="f-area">${db.areas.map(a=>`<option ${v.area===a?"selected":""}>${a}</option>`).join("")}</select></div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-input" id="f-status">${STATUSES.map(s=>`<option ${v.status===s?"selected":""}>${s}</option>`).join("")}</select></div>
+      <div class="form-group"><label class="form-label">Priority</label>
+        <select class="form-input" id="f-priority">${PRIORITIES.map(p=>`<option ${v.priority===p?"selected":""}>${p}</option>`).join("")}</select></div>
+      <div class="form-group"><label class="form-label">Due date</label>
+        <input class="form-input" type="date" id="f-due" value="${v.due||""}" /></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label>
+      <textarea class="form-input" id="f-notes" placeholder="Any context...">${esc(v.notes)}</textarea></div>
+
+```
+<div class="form-actions">
+  <button class="btn-cancel" id="modal-cancel">Cancel</button>
+  <button class="btn-save" id="modal-save">Save Task</button>
+</div>`;
+```
+
+document.getElementById(“modal-overlay”).classList.add(“open”);
+document.getElementById(“f-title”).focus();
+document.getElementById(“modal-cancel”).addEventListener(“click”, closeModal);
+document.getElementById(“modal-save”).addEventListener(“click”, () => {
+const title = document.getElementById(“f-title”).value.trim();
+if (!title) return;
+const updated = {
+id: t ? t.id : uid(), title,
+project: document.getElementById(“f-project”).value,
+area: document.getElementById(“f-area”).value,
+status: document.getElementById(“f-status”).value,
+priority: document.getElementById(“f-priority”).value,
+due: document.getElementById(“f-due”).value,
+notes: document.getElementById(“f-notes”).value,
+};
+if (t) { const i = db.tasks.findIndex(x=>x.id===t.id); db.tasks[i] = updated; }
+else db.tasks.unshift(updated);
+save(); closeModal(); render();
+});
+}
+
+function openNoteModal(id) {
+const n = id ? db.notes.find(n=>String(n.id)===String(id)) : null;
+const v = n || {title:””,content:””,para:“Resources”};
+document.getElementById(“modal-title”).textContent = n ? “Edit Note” : “New Note”;
+document.getElementById(“modal-body”).innerHTML = ` <div class="form-group"><input class="form-input" id="f-ntitle" value="${esc(v.title)}" placeholder="Note title" /></div> <div class="form-group"> <select class="form-input" id="f-npara">${PARA_SECTIONS.map(p=>`<option ${v.para===p?“selected”:””}>${p}</option>`).join("")}</select></div> <div class="form-group"><textarea class="form-input" id="f-ncontent" style="min-height:160px" placeholder="Write anything...">${esc(v.content)}</textarea></div> <div class="form-actions"> <button class="btn-cancel" id="modal-cancel">Cancel</button> <button class="btn-save blue" id="modal-save">Save Note</button> </div>`;
+document.getElementById(“modal-overlay”).classList.add(“open”);
+document.getElementById(“f-ntitle”).focus();
+document.getElementById(“modal-cancel”).addEventListener(“click”, closeModal);
+document.getElementById(“modal-save”).addEventListener(“click”, () => {
+const title = document.getElementById(“f-ntitle”).value.trim();
+if (!title) return;
+const updated = { id: n ? n.id : uid(), title, content: document.getElementById(“f-ncontent”).value, para: document.getElementById(“f-npara”).value, updated: new Date().toISOString() };
+if (n) { const i = db.notes.findIndex(x=>x.id===n.id); db.notes[i] = updated; }
+else db.notes.unshift(updated);
+save(); closeModal(); render();
+});
+}
+
+function closeModal() { document.getElementById(“modal-overlay”).classList.remove(“open”); }
+
+// ── Events ────────────────────────────────────────────────────────────────────
+document.getElementById(“modal-close”).addEventListener(“click”, closeModal);
+document.getElementById(“modal-overlay”).addEventListener(“click”, e => { if(e.target===e.currentTarget) closeModal(); });
+document.getElementById(“new-btn”).addEventListener(“click”, () => {
+if (state.view === “notes”) openNoteModal(null); else openTaskModal(null);
+});
+document.getElementById(“search”).addEventListener(“input”, e => { state.search = e.target.value; render(); });
+
+function esc(s) { return String(s||””).replace(/&/g,”&”).replace(/</g,”<”).replace(/>/g,”>”).replace(/”/g,”"”); }
+
+render();
+</script>
+
+</body>
+</html>
